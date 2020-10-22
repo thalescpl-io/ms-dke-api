@@ -1,0 +1,197 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Azure KeyManager DKE API",
+    "version": "1.0",
+    "contact": {
+      "name": "Thales CPL",
+      "url": "https://dke.azure.dpondemand.io"
+    }
+  },
+  "host": "dke.azure.dpondemand.io",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/{key_name}": {
+      "get": {
+        "summary": "Gets the public key",
+        "operationId": "GetPublicKey",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PublicKeyResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid key",
+            "schema": {}
+          },
+          "403": {
+            "description": "Permission denied",
+            "schema": {}
+          }
+        },
+        "parameters": [
+          {
+            "name": "key_name",
+            "description": "Required. Key Name\ne.g. `TestKey1`.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AzureDKEKeyManagementService"
+        ]
+      }
+    },
+    "/{key_name}/{key_id}/decrypt": {
+      "post": {
+        "summary": "Decrypts using the private key. Credentials need to be provided via the\nAuthorization header with the Bearer JWT token.",
+        "operationId": "Decrypt",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DecryptResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Permission denied",
+            "schema": {}
+          }
+        },
+        "parameters": [
+          {
+            "name": "key_name",
+            "description": "Required. Name of the key\ne.g. `TestKey1`.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "key_id",
+            "description": "Required. The identifier of the key\n(as provided by [AzureDKEKeyManagementService.GetKey][])\ne.g.\n`D798B899-3350-4F5C-A608-2EDA37CB0EBD`",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DecryptRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AzureDKEKeyManagementService"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PublicKeyResponseKey": {
+      "type": "object",
+      "properties": {
+        "kty": {
+          "type": "string",
+          "title": "Key type"
+        },
+        "n": {
+          "type": "string",
+          "title": "Key"
+        },
+        "e": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Key exponent (typically 65537)"
+        },
+        "alg": {
+          "type": "string",
+          "title": "Algorithm"
+        },
+        "kid": {
+          "type": "string",
+          "title": "Key ID"
+        }
+      },
+      "title": "Key information"
+    },
+    "v1DecryptRequest": {
+      "type": "object",
+      "properties": {
+        "key_name": {
+          "type": "string",
+          "description": "Required. Name of the key\ne.g. `TestKey1`."
+        },
+        "key_id": {
+          "type": "string",
+          "title": "Required. The identifier of the key\n(as provided by [AzureDKEKeyManagementService.GetKey][])\ne.g.\n`D798B899-3350-4F5C-A608-2EDA37CB0EBD`"
+        },
+        "alg": {
+          "type": "string",
+          "title": "Required. Algorithm\ne.g. `RSA-OAEP-256`"
+        },
+        "value": {
+          "type": "string",
+          "title": "Required. Encrypted value, base64 encoded"
+        }
+      },
+      "description": "Decrypt using the private key. The encrypted text must have been encrypted\nusing the private key."
+    },
+    "v1DecryptResponse": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "format": "byte",
+          "title": "The decrypted data, base64 encoded"
+        }
+      },
+      "description": "Response message for [AzureDKEKeyManagementService.Decrypt][]."
+    },
+    "v1PublicKeyResponse": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "$ref": "#/definitions/PublicKeyResponseKey",
+          "title": "The key"
+        }
+      },
+      "description": "Response message for [AzureDKEKeyManagementService.GetPublicKey][]."
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "oauth2",
+      "name": "Authorization",
+      "in": "header",
+      "flow": "application",
+      "authorizationUrl": "https://login.windows.net/common/oauth2/authorize",
+      "tokenUrl": "https://login.windows.net/common/oauth2/authorize"
+    }
+  }
+}

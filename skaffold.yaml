@@ -1,0 +1,7 @@
+apiVersion: skaffold/v2beta7
+kind: Config
+build:
+  artifacts:
+    - image: prototool
+      docker:
+        dockerfile: docker/Dockerfile.prototool

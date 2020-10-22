@@ -1,16 +1,17 @@
 syntax = "proto3";
 
-package azure.dke.v0;
+package azure.dke.v1;
 
 import "google/api/annotations.proto";
+import "google/api/http.proto";
 import "protoc-gen-swagger/options/annotations.proto";
-option go_package = "git.tesdev.io/thalescpl.io/ekms/apis/ekms/azure/dkev0;dke";
+option go_package = "github.com/thalscpl-io/ms-dke-api/dke/v1;dke";
 
 option (grpc.gateway.protoc_gen_swagger.options.openapiv2_swagger) = {
   host: "dke.azure.dpondemand.io"
   info: {
     title: "Azure KeyManager DKE API"
-    version: "0.9"
+    version: "1.0"
     contact: {
       name: "Thales CPL";
       url: "https://dke.azure.dpondemand.io"

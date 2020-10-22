@@ -1,0 +1,67 @@
+FROM golang:1.14-alpine3.11 as builder
+
+RUN apk add --update --no-cache build-base curl git upx && \
+  rm -rf /var/cache/apk/*
+ENV GOLANG_PROTOBUF_VERSION=1.3.1 \
+  GOGO_PROTOBUF_VERSION=1.2.1
+RUN GO111MODULE=on go get \
+  github.com/golang/protobuf/protoc-gen-go@v${GOLANG_PROTOBUF_VERSION} \
+  github.com/gogo/protobuf/protoc-gen-gofast@v${GOGO_PROTOBUF_VERSION} \
+  github.com/gogo/protobuf/protoc-gen-gogo@v${GOGO_PROTOBUF_VERSION} \
+  github.com/gogo/protobuf/protoc-gen-gogofast@v${GOGO_PROTOBUF_VERSION} \
+  github.com/gogo/protobuf/protoc-gen-gogofaster@v${GOGO_PROTOBUF_VERSION} \
+  github.com/gogo/protobuf/protoc-gen-gogoslick@v${GOGO_PROTOBUF_VERSION} && \
+  mv /go/bin/protoc-gen-go* /usr/local/bin/
+
+ENV GRPC_GATEWAY_VERSION=1.14.0
+RUN curl -sSL \
+  https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v${GRPC_GATEWAY_VERSION}/protoc-gen-grpc-gateway-v${GRPC_GATEWAY_VERSION}-linux-x86_64 \
+  -o /usr/local/bin/protoc-gen-grpc-gateway && \
+  curl -sSL \
+  https://github.com/grpc-ecosystem/grpc-gateway/releases/download/v${GRPC_GATEWAY_VERSION}/protoc-gen-swagger-v${GRPC_GATEWAY_VERSION}-linux-x86_64 \
+  -o /usr/local/bin/protoc-gen-swagger && \
+  chmod +x /usr/local/bin/protoc-gen-grpc-gateway && \
+  chmod +x /usr/local/bin/protoc-gen-swagger
+
+ENV GRPC_WEB_VERSION=1.2.1
+RUN curl -sSL \
+  https://github.com/grpc/grpc-web/releases/download/${GRPC_WEB_VERSION}/protoc-gen-grpc-web-${GRPC_WEB_VERSION}-linux-x86_64 \
+  -o /usr/local/bin/protoc-gen-grpc-web && \
+  chmod +x /usr/local/bin/protoc-gen-grpc-web
+
+
+ENV PROTOBUF_VERSION=3.13.0
+RUN mkdir -p /tmp/protoc && \
+  curl -sSL \
+  https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip \
+  -o /tmp/protoc/protoc.zip && \
+  cd /tmp/protoc && \
+  unzip protoc.zip && \
+  mv /tmp/protoc/include /usr/local/include
+
+## Add GORM
+ENV GORM_VERSION=0.20.0
+RUN GO111MODULE=on go get github.com/infobloxopen/protoc-gen-gorm@v${GORM_VERSION} &&\
+    mv /go/bin/protoc-gen-gorm* /usr/local/bin/
+### New Gorm
+#RUN git clone --depth 1 https://github.com/ThalesIgnite/protoc-gen-gorm.git /go/src/github.com/infobloxopen/protoc-gen-gorm && \
+#    cd /go/src/github.com/infobloxopen/protoc-gen-gorm && \
+#    GO111MODULE=on go install . && \
+#    mv /go/bin/protoc-gen-gorm* /usr/local/bin/
+
+## Add JSON
+RUN GO111MODULE=on go get github.com/mitchellh/protoc-gen-go-json &&\
+    mv /go/bin/protoc-gen-go-json* /usr/local/bin/
+
+## ADD gotag
+RUN git clone --depth 1 https://github.com/yinzara/protoc-gen-gotag.git /go/src/github.com/yinzara/protoc-gen-gotag && \
+    cd /go/src/github.com/yinzara/protoc-gen-gotag  && \
+    GO111MODULE=on go install . && \
+    mv /go/bin/protoc-gen-gotag* /usr/local/bin/
+
+
+
+FROM uber/prototool:latest
+COPY --from=builder /usr/local/bin/* /usr/local/bin/
+WORKDIR /work
+
