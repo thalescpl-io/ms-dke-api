@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+make deps
+
+PATH=".tmp/$(uname -s)/$(uname -m)/bin:$PATH"
+export PATH
+
+exec prototool "$@"
