@@ -1,4 +1,4 @@
-all: gen
+all: gen app
 
 SHELL := /bin/bash -o pipefail
 
@@ -80,3 +80,15 @@ gen-prototol:
 
 deps: $(GOLANG_PROTOBUF) $(GOGO_PROTOBUF) $(GRPC_GATEWAY) $(PROTOTOOL)
 	@echo > /dev/null
+
+app: gen main.go keystore/main.go
+	go build
+
+key.pem:
+	openssl genrsa -out key.pem
+
+key.pub: key.pem
+	openssl rsa -in key.pem -pubout > key.pub
+
+test: key.pub
+	curl -v -L -H"Content-Type: application/json" -d "{\"key_name\": \"TestKey1\", \"key_id\": \"D798B899-3350-4F5C-A608-2EDA37CB0EBD\", \"alg\": \"RSA-OAEP-256\", \"value\": \"$(shell openssl pkeyutl -encrypt -inkey key.pub -pubin -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -in input.txt | base64 -w0)\"}" http://localhost:5000/TestKey1/D798B899-3350-4F5C-A608-2EDA37CB0EBD/decrypt
