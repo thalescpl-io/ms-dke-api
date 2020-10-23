@@ -116,8 +116,8 @@ message PublicKeyResponse {
     // Key type
     string kty = 1;
     
-    // Key
-    string n = 2;
+    // Modulus
+    bytes n = 2;
     
     // Key exponent (typically 65537)
     int32  e = 3;
@@ -150,12 +150,12 @@ message DecryptRequest {
   // e.g. `RSA-OAEP-256`
   string alg = 3;
 
-  // Required. Encrypted value, base64 encoded
-  string value = 4;
+  // Required. Encrypted value
+  bytes value = 4;
 }
 
 // Response message for [AzureDKEKeyManagementService.Decrypt][].
 message DecryptResponse {
-  // The decrypted data, base64 encoded
+  // The decrypted data
   bytes value = 1;
 }
