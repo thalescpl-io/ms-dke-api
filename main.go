@@ -45,16 +45,12 @@ func (s *Server) GetPublicKey(ctx context.Context, req *dke.PublicKeyRequest) (*
 }
 
 func (s *Server) Decrypt(ctx context.Context, req *dke.DecryptRequest) (*dke.DecryptResponse, error) {
-	if req.Alg != "RSA-OAEP-256" {
-		return nil, fmt.Errorf("%s is not supported", req.Alg)
-	}
-
 	key, err := s.keyStore.GetKey(req.KeyName, req.KeyId)
 	if err != nil {
 		return nil, err
 	}
 
-	decryptedBytes, err := key.Decrypt(req.Value)
+	decryptedBytes, err := key.Decrypt(req.Value, req.Alg)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +74,7 @@ func main() {
 		panic(err)
 	}
 
-	keyStore := keystore.New()
+	keyStore := keystore.NewPlain()
 	keyStore.AddRSAKey("TestKey1", "D798B899-3350-4F5C-A608-2EDA37CB0EBD", key)
 
 	var opts []runtime.ServeMuxOption
